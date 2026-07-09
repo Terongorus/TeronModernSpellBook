@@ -5,10 +5,9 @@ to look and feel like the modern Retail spellbook — tabs, badges, glowing "ava
 train" highlights, a search bar, and a real settings menu, instead of the plain paginated
 list Blizzard shipped in 2006.
 
-This is Kaloyan "Terongorus" Kolev's personal fork of the community **ModernSpellBook**
-port (itself a port of the WoW Classic Season of Discovery addon of the same name),
-maintained to work on both **Turtle WoW** and pure **Vanilla 1.12.1** servers such as
-**TwinStar Kronos V**.
+This is Terongorus's personal fork of the community **ModernSpellBook** port (itself a
+port of the WoW Classic Season of Discovery addon of the same name), maintained to work
+on both **Turtle WoW** and pure **Vanilla 1.12.1** servers such as **TwinStar Kronos V**.
 
 ---
 
@@ -124,4 +123,4 @@ pipeline every native tab uses — which is exactly what the WhatsTraining integ
 - Original **[ModernSpellBook](https://www.curseforge.com/wow/addons/modern-spellbook)**
   addon for WoW Classic Season of Discovery.
 - Turtle WoW 1.12.1 port, ongoing maintenance, and the WhatsTraining tab integration by
-  **Kaloyan "Terongorus" Kolev**.
+  **Terongorus**.
