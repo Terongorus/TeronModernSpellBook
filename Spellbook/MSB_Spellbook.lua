@@ -137,7 +137,13 @@ class "CSpellBook"
 
 	OnShow = function(self)
 		PlaySound(SOUNDKIT.IG_SPELLBOOK_OPEN)
-		ActionBarHelper:ShowAllGrids()
+		-- Deliberately does not touch action-bar grid visibility at all (ActionBarHelper removed
+		-- entirely) - the empty-slot grid overlay is governed by the client's own native "Always
+		-- Show Buttons" setting, and every attempt to temporarily force it on while this window is
+		-- open and back off when it closes ended up fighting that setting instead of respecting
+		-- it (confirmed via live stack-trace diagnostics: even a perfectly paired show-then-hide
+		-- cycle still left the grid hidden afterward, since Blizzard's hide call doesn't know or
+		-- care what the pre-existing state was).
 
 		if (self.frame.isFirstLoad) then
 			self:AddAllRanksCheckBox()

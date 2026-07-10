@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow major.minor.hotfix (e.g. 1.2.3).
 
+## [1.6.3] - 2026-07-11
+
+### Removed
+- `ActionBarHelper` and all action-bar grid management removed entirely. The 1.6.2 fix improved
+  its reference counting, but live stack-trace diagnostics showed the real problem was deeper:
+  even a perfectly paired show-then-hide cycle (triggered via a third-party addon hook chain
+  through the real `SpellBookFrame`) still left the default action bars' empty-slot grid hidden
+  afterward, because hiding it doesn't know or care what the grid's state was before this addon
+  ever touched it. Rather than try to precisely detect and restore that pre-existing state, this
+  addon now leaves action-bar grid visibility alone entirely - it's governed solely by the
+  client's own native "Always Show Buttons" setting, same as it would be without this addon
+  installed at all.
+
 ## [1.6.2] - 2026-07-11
 
 ### Fixed

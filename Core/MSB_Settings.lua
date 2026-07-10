@@ -43,11 +43,10 @@ class "CSettingsMenu"
 		-- i.e. ModernSpellBookFrame) - MSB_Spellbook.lua's own __init deliberately does not set
 		-- one, since this constructor runs later (during OnAddonLoaded) and SetScript replaces
 		-- rather than stacks, so an earlier assignment there would just be overwritten anyway.
-		-- Balances the ActionBarHelper:ShowAllGrids() call in CSpellBook:OnShow(), or the
-		-- action-bar "empty slot" grid overlay is left stuck showing after the book closes.
+		-- No longer touches action-bar grid visibility here (ActionBarHelper removed entirely) -
+		-- see the comment in CSpellBook:OnShow() for why.
 		parent:SetScript("OnHide", function()
 			CloseDropDownMenus()
-			ActionBarHelper:HideAllGrids()
 		end)
 
 		ModernSpellBookFrame.settingsButton = self.button
