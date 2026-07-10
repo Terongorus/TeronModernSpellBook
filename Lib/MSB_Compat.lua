@@ -55,15 +55,16 @@ if not C_Timer.After then
     end
 end
 
--- SOUNDKIT polyfill (vanilla uses string sound names, not numeric IDs)
-if not SOUNDKIT then
-    SOUNDKIT = {
-        IG_MAINMENU_OPTION_CHECKBOX_ON = "igMainMenuOptionCheckBoxOn",
-        IG_ABILITY_PAGE_TURN = "igAbilityPageTurn",
-        IG_SPELLBOOK_OPEN = "igSpellBookOpen",
-        IG_SPELLBOOK_CLOSE = "igSpellBookClose",
-    }
-end
+-- SOUNDKIT polyfill (vanilla uses string sound names, not numeric IDs). Merged
+-- key-by-key rather than an all-or-nothing "if not SOUNDKIT" guard, since another
+-- addon (TeronRosterFilter) polyfills the same global with a different partial set
+-- of keys and may load first, which would otherwise block these keys from ever
+-- being added.
+SOUNDKIT = SOUNDKIT or {}
+if not SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON then SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON = "igMainMenuOptionCheckBoxOn" end
+if not SOUNDKIT.IG_ABILITY_PAGE_TURN then SOUNDKIT.IG_ABILITY_PAGE_TURN = "igAbilityPageTurn" end
+if not SOUNDKIT.IG_SPELLBOOK_OPEN then SOUNDKIT.IG_SPELLBOOK_OPEN = "igSpellBookOpen" end
+if not SOUNDKIT.IG_SPELLBOOK_CLOSE then SOUNDKIT.IG_SPELLBOOK_CLOSE = "igSpellBookClose" end
 
 -- MSB-scoped wrappers for spellbook item APIs
 function MSB_GetSpellBookItemName(index, bookType)
