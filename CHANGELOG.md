@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow major.minor.hotfix (e.g. 1.2.3).
 
+## [1.6.4] - 2026-07-11
+
+### Added
+- Re-added `MSB_ActionBar.lua`, redesigned as a brute-force "always show" enforcer rather than a
+  precise show/hide-on-open/close manager: 1.6.3 removed grid handling entirely on the theory that
+  the client's native "Always Show Buttons" setting should be left alone to govern it, but the
+  grid kept disappearing even with zero grid-touching code left in this addon - confirming some
+  other trigger (most likely Blizzard's own panel-layout code, which runs whenever any UI panel
+  opens) hides it independently of anything this addon does. Rather than keep chasing that, this
+  now just re-shows the grid immediately on `PLAYER_ENTERING_WORLD`, `ACTIONBAR_HIDEGRID`,
+  `ACTIONBAR_PAGE_CHANGED`, and `UPDATE_BONUS_ACTIONBAR`, regardless of what caused it to hide.
+
 ## [1.6.3] - 2026-07-11
 
 ### Removed
