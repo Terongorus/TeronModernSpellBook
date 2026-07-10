@@ -43,10 +43,14 @@ class "CSettingsMenu"
 		-- i.e. ModernSpellBookFrame) - MSB_Spellbook.lua's own __init deliberately does not set
 		-- one, since this constructor runs later (during OnAddonLoaded) and SetScript replaces
 		-- rather than stacks, so an earlier assignment there would just be overwritten anyway.
-		-- No longer touches action-bar grid visibility here (ActionBarHelper removed entirely) -
-		-- see the comment in CSpellBook:OnShow() for why.
+		-- Re-shows the action-bar grid once per close, since closing this frame goes through
+		-- ToggleSpellBook -> Blizzard's own ShowUIPanel/HideUIPanel, which hides it as a native
+		-- side effect - see MSB_ForceShowActionBarGrids in MSB_Spellbook.lua for the full story.
+		-- This fires once per genuine close (not a recurring/frequently-firing event), so it
+		-- doesn't carry the feedback-loop risk that broke the keybind in 1.6.4.
 		parent:SetScript("OnHide", function()
 			CloseDropDownMenus()
+			MSB_ForceShowActionBarGrids()
 		end)
 
 		ModernSpellBookFrame.settingsButton = self.button

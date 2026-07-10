@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow major.minor.hotfix (e.g. 1.2.3).
 
+## [1.6.6] - 2026-07-11
+
+### Fixed
+- Found the actual root cause of the persistent grid-hiding bug: `ForceLoad()` (which opens and
+  closes the real `SpellBookFrame` twice on every login/reload to prime Blizzard's spell-data
+  cache) calls Blizzard's own `ShowUIPanel`/`HideUIPanel` - and that native panel-layout code, not
+  anything this addon's own grid logic ever did, hides the default action bars' empty-slot grid as
+  a side effect. Nothing ever reasserted it afterward, which is why it stayed gone permanently
+  until the addon was disabled entirely (confirmed via bisection testing), regardless of whether
+  this addon had any grid-handling code of its own (1.6.3/1.6.5 removed it entirely; the bug
+  persisted both times). Fixed with a single, one-time re-show call right after `ForceLoad`'s
+  toggle sequence settles - deliberately not tied to any recurring event this time, unlike 1.6.4's
+  reactive approach, which caused a feedback loop severe enough to break the spellbook keybind.
+
 ## [1.6.5] - 2026-07-11
 
 ### Removed

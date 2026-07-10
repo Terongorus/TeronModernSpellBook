@@ -21,6 +21,28 @@ local totalSpellItems = 0
 local totalCategoryItems = 0
 local leftButtons = {"ShowPassiveSpellsCheckBox", "ShowAllSpellRanksCheckbox", "ModernSpellBookFrameSearchBar"}
 
+-- Re-shows the default action bars' empty-slot grid, once. Blizzard's own ShowUIPanel/HideUIPanel
+-- (called internally by ToggleSpellBook, both from ForceLoad's cache-priming toggle and from any
+-- genuine open/close of the spellbook via keybind) hides this grid as a native panel-layout side
+-- effect - not anything this addon's own code does directly. Called once per relevant event (see
+-- callers), never tied to a recurring/frequently-firing event, since that caused a bad feedback
+-- loop in a previous version (ActionButton_ShowGrid may itself trigger action-bar-refresh events).
+function MSB_ForceShowActionBarGrids()
+	if (ActionButton_ShowGrid == nil) then return end
+
+	local bars = { "MultiBarBottomLeft", "MultiBarBottomRight", "MultiBarRight", "MultiBarLeft" }
+	local numButtons = NUM_MULTIBAR_BUTTONS or 12
+	local b, i
+	for b = 1, table.getn(bars) do
+		for i = 1, numButtons do
+			local button = _G[bars[b].."Button"..i]
+			if (button) then
+				ActionButton_ShowGrid(button)
+			end
+		end
+	end
+end
+
 class "CSpellBook"
 {
 	__init = function(self)
@@ -230,6 +252,11 @@ class "CSpellBook"
 				ToggleSpellBook(BOOKTYPE_SPELL)
 			end
 			self.frame.isForceLoading = false
+
+			-- ToggleSpellBook() above calls Blizzard's own ShowUIPanel/HideUIPanel on
+			-- SpellBookFrame to prime its spell-data cache - and that native panel-layout code
+			-- hides the default action bars' grid as a side effect. See MSB_ForceShowActionBarGrids.
+			MSB_ForceShowActionBarGrids()
 		end)
 	end;
 
