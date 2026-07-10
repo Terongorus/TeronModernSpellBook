@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow major.minor.hotfix (e.g. 1.2.3).
 
+## [1.6.2] - 2026-07-11
+
+### Fixed
+- `ActionBarHelper`'s per-button grid show/hide reference count never actually worked - it tried
+  tracking a count via `button:GetAttribute`/`SetAttribute`, the secure-template attribute API,
+  which doesn't exist in vanilla 1.12.1 (added in TBC). That check silently never ran, so every
+  call forwarded 1:1 to Blizzard's `ActionButton_ShowGrid`/`HideGrid` with no real counting -
+  meaning any unpaired `HideAllGrids()` call could unconditionally hide the empty-slot grid on the
+  default action bars even when something else (e.g. the "Always Show Buttons" setting) had its
+  own reason to keep it visible. Replaced with a real Lua-table-based counter; `HideButtonGrid` now
+  refuses to hide a button it never contributed a matching show for.
+
+### Changed
+- Consolidated a redundant `OnHide` handler on the spellbook frame: `MSB_Settings.lua`'s
+  `CSettingsMenu` constructor was silently overwriting the one `MSB_Spellbook.lua` set up moments
+  earlier (`SetScript` replaces, not stacks), leaving dead code with a misleading comment. Now
+  there's one clearly-documented, authoritative handler.
+
 ## [1.6.1] - 2026-07-10
 
 ### Fixed

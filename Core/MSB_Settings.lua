@@ -39,7 +39,12 @@ class "CSettingsMenu"
 			ToggleDropDownMenu(1, nil, dropdown, settings.button, 0, 0)
 		end)
 
-		-- Hide dropdown when spellbook closes
+		-- This is the single authoritative OnHide handler for the spellbook frame (`parent`,
+		-- i.e. ModernSpellBookFrame) - MSB_Spellbook.lua's own __init deliberately does not set
+		-- one, since this constructor runs later (during OnAddonLoaded) and SetScript replaces
+		-- rather than stacks, so an earlier assignment there would just be overwritten anyway.
+		-- Balances the ActionBarHelper:ShowAllGrids() call in CSpellBook:OnShow(), or the
+		-- action-bar "empty slot" grid overlay is left stuck showing after the book closes.
 		parent:SetScript("OnHide", function()
 			CloseDropDownMenus()
 			ActionBarHelper:HideAllGrids()

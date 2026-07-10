@@ -59,11 +59,10 @@ class "CSpellBook"
 			spellBook:OnShow()
 		end)
 
-		-- OnHide: balance the ShowAllGrids() call in OnShow, or the action-bar
-		-- "empty slot" grid overlay is left stuck showing after the book closes.
-		self.frame:SetScript("OnHide", function()
-			ActionBarHelper:HideAllGrids()
-		end)
+		-- OnHide is NOT set here - CSettingsMenu's constructor (MSB_Settings.lua) sets it on this
+		-- same frame later, during OnAddonLoaded, and SetScript replaces rather than stacks, so an
+		-- assignment here would just be silently overwritten and never fire. That's the actual,
+		-- single authoritative OnHide handler for this frame; see the comment there.
 
         _G.ModernSpellBookFrame = self.frame
 	end;
