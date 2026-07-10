@@ -329,21 +329,21 @@ class "CSpellBook"
 		self.frame.portraitBorderFrame:SetFrameLevel(self.frame:GetFrameLevel() + 5)
 		self.frame.portraitBorder = self.frame.portraitBorderFrame:CreateTexture(nil, "OVERLAY")
 		self.frame.portraitBorder:SetAllPoints(self.frame.portraitBorderFrame)
-		self.frame.portraitBorder:SetTexture("Interface\\AddOns\\ModernSpellBook\\Assets\\Spellbook\\spellbook-frame")
+		self.frame.portraitBorder:SetTexture("Interface\\AddOns\\TeronModernSpellBook\\Assets\\Spellbook\\spellbook-frame")
 
 		-- Background pages (top anchor positions, bottom anchor = frame bottom, height auto)
 		self.frame.backgroundLeft = self.frame:CreateTexture(nil, "ARTWORK")
 		self.frame.backgroundLeft:SetWidth(512)
 		self.frame.backgroundLeft:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 15, -50)
 		self.frame.backgroundLeft:SetPoint("BOTTOMLEFT", self.frame, "BOTTOMLEFT", 0, 10)
-		self.frame.backgroundLeft:SetTexture("Interface\\AddOns\\ModernSpellBook\\Assets\\Spellbook\\spellbook-page-1")
+		self.frame.backgroundLeft:SetTexture("Interface\\AddOns\\TeronModernSpellBook\\Assets\\Spellbook\\spellbook-page-1")
 		self.frame.backgroundLeft:SetTexCoord(0, 1, 0, 1)
 
 		self.frame.backgroundRight = self.frame:CreateTexture(nil, "ARTWORK")
 		self.frame.backgroundRight:SetWidth(512)
 		self.frame.backgroundRight:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 527, -50)
 		self.frame.backgroundRight:SetPoint("BOTTOMRIGHT", self.frame, "BOTTOMRIGHT", -15, 10)
-		self.frame.backgroundRight:SetTexture("Interface\\AddOns\\ModernSpellBook\\Assets\\Spellbook\\spellbook-page-2")
+		self.frame.backgroundRight:SetTexture("Interface\\AddOns\\TeronModernSpellBook\\Assets\\Spellbook\\spellbook-page-2")
 		self.frame.backgroundRight:SetTexCoord(0, 1, 0, 1)
 
 		-- Bookmark
@@ -351,7 +351,7 @@ class "CSpellBook"
 		self.frame.bookmark:SetWidth(64)
 		self.frame.bookmark:SetHeight(256)
 		self.frame.bookmark:SetPoint("TOPLEFT", self.frame, "TOPLEFT", windowSettings.width1-65, -53)
-		self.frame.bookmark:SetTexture("Interface\\AddOns\\ModernSpellBook\\Assets\\Spellbook\\bookmark")
+		self.frame.bookmark:SetTexture("Interface\\AddOns\\TeronModernSpellBook\\Assets\\Spellbook\\bookmark")
 		self.frame.bookmark:SetTexCoord(1, 0, 0, 1)
 		classColors = nil
 
@@ -396,7 +396,7 @@ class "CSpellBook"
 			parent:Hide()
 
 			local icon = CIcon(parent, UPCOMING_ICON_SIZE)
-			icon.border:SetTexture("Interface\\AddOns\\ModernSpellBook\\Assets\\Spellbook\\spell_border_gray")
+			icon.border:SetTexture("Interface\\AddOns\\TeronModernSpellBook\\Assets\\Spellbook\\spell_border_gray")
 			icon.border_frame:SetWidth(UPCOMING_ICON_SIZE + 4)
 			icon.border_frame:SetHeight(UPCOMING_ICON_SIZE + 4)
 			icon.socket:Hide()

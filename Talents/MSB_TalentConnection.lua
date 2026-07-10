@@ -3,7 +3,7 @@
 	CTalentConnection: Full L-shaped prereq path (owns multiple arrows).
 --]]
 
-local TALENT_ASSETS = "Interface\\AddOns\\ModernSpellBook\\Assets\\Talents\\"
+local TALENT_ASSETS = "Interface\\AddOns\\TeronModernSpellBook\\Assets\\Talents\\"
 
 local ARROW_TEXTURES = {
 	v           = TALENT_ASSETS .. "arrow-v",

@@ -8,7 +8,7 @@
 	  Normal      → round frame + circular icon mask
 --]]
 
-local TALENT_ASSETS = "Interface\\AddOns\\ModernSpellBook\\Assets\\Talents\\"
+local TALENT_ASSETS = "Interface\\AddOns\\TeronModernSpellBook\\Assets\\Talents\\"
 local TALENT_ICON_SIZE = 30
 local TALENT_ICON_SIZE_EXCEPTIONAL = 34
 

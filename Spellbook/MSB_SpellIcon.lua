@@ -4,7 +4,7 @@
 	and methods that use spellInfo / ModernSpellBook_DB.
 --]]
 
-local SPELLBOOK_ASSETS = "Interface\\AddOns\\ModernSpellBook\\Assets\\Spellbook\\"
+local SPELLBOOK_ASSETS = "Interface\\AddOns\\TeronModernSpellBook\\Assets\\Spellbook\\"
 local DEFAULT_ICON_SIZE = 28
 local DEFAULT_SOCKET_SIZE = 22
 

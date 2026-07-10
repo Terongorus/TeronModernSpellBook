@@ -4,7 +4,7 @@
 	and the full talent grid on the right.
 --]]
 
-local TALENT_ASSETS = "Interface\\AddOns\\ModernSpellBook\\Assets\\Talents\\"
+local TALENT_ASSETS = "Interface\\AddOns\\TeronModernSpellBook\\Assets\\Talents\\"
 
 class "CExpandedSpecFrame"
 {
@@ -56,7 +56,7 @@ class "CExpandedSpecFrame"
 		end
 
 		-- Full background (two 512x512 halves)
-		local bgBase = "Interface\\AddOns\\ModernSpellBook\\Assets\\Talents\\Backgrounds\\talentbg-" .. string.lower(englishClass) .. "-" .. specIndex
+		local bgBase = "Interface\\AddOns\\TeronModernSpellBook\\Assets\\Talents\\Backgrounds\\talentbg-" .. string.lower(englishClass) .. "-" .. specIndex
 		local bgLeft = self.frame:CreateTexture(nil, "ARTWORK")
 		bgLeft:SetTexture(bgBase .. "-left")
 		bgLeft:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 0, 0)

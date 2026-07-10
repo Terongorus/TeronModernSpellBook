@@ -4,7 +4,7 @@
 	Can be instantiated multiple times (overview panels, expanded view, etc.)
 --]]
 
-local TALENT_ASSETS = "Interface\\AddOns\\ModernSpellBook\\Assets\\Talents\\"
+local TALENT_ASSETS = "Interface\\AddOns\\TeronModernSpellBook\\Assets\\Talents\\"
 
 -- Grid line alpha per class-spec: [englishClass][specIndex]
 local GRID_LINE_ALPHA = {

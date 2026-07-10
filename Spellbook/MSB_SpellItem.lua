@@ -50,7 +50,7 @@ class "CSpellItem"
 		self.trailBg:SetWidth(170)
 		self.trailBg:SetHeight(40)
 		self.trailBg:SetPoint("LEFT", self.frame, "CENTER", 0, 0)
-		self.trailBg:SetTexture("Interface\\AddOns\\ModernSpellBook\\Assets\\Spellbook\\spellbook-trail")
+		self.trailBg:SetTexture("Interface\\AddOns\\TeronModernSpellBook\\Assets\\Spellbook\\spellbook-trail")
 		self.trailBg:SetAlpha(1)
 
 		-- Rank / subtitle text

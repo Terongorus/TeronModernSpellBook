@@ -21,7 +21,7 @@ local VERT_OFFSET = (TOTAL_HEIGHT - PANEL_HEIGHT) / 2
 
 local EXPANDED_HORIZONTAL_PADDING = 350
 
-local TALENT_ASSETS = "Interface\\AddOns\\ModernSpellBook\\Assets\\Talents\\"
+local TALENT_ASSETS = "Interface\\AddOns\\TeronModernSpellBook\\Assets\\Talents\\"
 
 -- Shared constants for CExpandedSpecFrame
 MSB_TALENT_CONSTANTS = {
@@ -264,7 +264,7 @@ class "CTalentTree"
 		local titleIcon = titleIconFrame:CreateTexture(nil, "OVERLAY")
 		titleIcon:SetAllPoints(titleIconFrame)
 		titleIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-		titleIcon:SetTexture("Interface\\AddOns\\ModernSpellBook\\Assets\\Talents\\classicon-" .. string.lower(englishClass))
+		titleIcon:SetTexture("Interface\\AddOns\\TeronModernSpellBook\\Assets\\Talents\\classicon-" .. string.lower(englishClass))
 
 		local numTabs = GetNumTalentTabs()
 		-- Offset to center 4-col layout within 7-col panel
@@ -293,7 +293,7 @@ class "CTalentTree"
 
 
 			-- Spec background texture (two 512x512 halves, right-cropped to fit panel)
-			local bgBase = "Interface\\AddOns\\ModernSpellBook\\Assets\\Talents\\Backgrounds\\talentbg-" .. string.lower(englishClass) .. "-" .. t
+			local bgBase = "Interface\\AddOns\\TeronModernSpellBook\\Assets\\Talents\\Backgrounds\\talentbg-" .. string.lower(englishClass) .. "-" .. t
 			-- Original image is 1024x512 (2:1). Scale to fit panel height, crop left.
 			local scaledWidth = PANEL_HEIGHT * 2
 			local visibleFraction = PANEL_WIDTH / scaledWidth
