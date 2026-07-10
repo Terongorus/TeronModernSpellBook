@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow major.minor.hotfix (e.g. 1.2.3).
 
+## [1.6.5] - 2026-07-11
+
+### Removed
+- **Reverted 1.6.4 entirely** - it broke the default spellbook keybind (the UI stopped opening).
+  Suspected cause: `ActionButton_ShowGrid` likely triggers its own action-bar refresh, which can
+  re-fire `ACTIONBAR_PAGE_CHANGED`/`UPDATE_BONUS_ACTIONBAR` - the exact two events 1.6.4 reacted to
+  by re-calling `ActionButton_ShowGrid` on all 48 multi-bar buttons, a plausible tight feedback
+  loop severe enough to make the client stop responding to keybinds. Not confirmed with certainty
+  (no live client access to verify directly), but the risk of leaving it live while it blocks basic
+  addon functionality outweighed chasing the always-on-grid feature further right now. Back to
+  1.6.3's baseline: this addon does not touch action-bar grid visibility at all.
+
 ## [1.6.4] - 2026-07-11
 
 ### Added
