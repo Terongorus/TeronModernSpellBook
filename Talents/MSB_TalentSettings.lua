@@ -1,7 +1,84 @@
 --[[
 	CTalentSettings: Settings dropdown for the talent tree window.
 	Grid line toggles, coloring, visibility, reset position/scale.
+	Force-shift-click-learn and talent plan switching/renaming/clearing both live in their own
+	always-visible top-bar widgets (CTalentTree, see MSB_TalentTree.lua) rather than here - the
+	StaticPopupDialogs entries for renaming/clearing a plan are still registered in this file
+	since they're popup-system plumbing, but the top-bar buttons are what trigger them.
 --]]
+
+-- This client's native StaticPopup implementation normally passes the dialog frame as an explicit
+-- first parameter to OnShow/OnAccept, and exposes its edit box as a direct `.editBox` field -
+-- confirmed against TeronRosterFilter's own working hasEditBox popup. But some addons (e.g.
+-- _LazyPig) cache and re-wrap StaticPopup_OnShow themselves, calling the cached original with
+-- zero arguments from inside a plain function rather than a widget script; going through that
+-- indirection left both `self` nil AND `.editBox` unpopulated, even though `this` still correctly
+-- resolves to the dialog and the edit box still exists as the client's own named global widget
+-- (StaticPopup1EditBox etc.) regardless. Falls back through both: `self or this` for the dialog,
+-- then `.editBox` or a getglobal(name.."EditBox") lookup for the edit box - whichever path the
+-- popup got shown through, at least one of each pair is reliably correct.
+local function MSB_TalentPlanRename_GetEditBox(dialog)
+	return dialog.editBox or getglobal(dialog:GetName() .. "EditBox")
+end
+
+local function MSB_TalentPlanRename_Apply(popupFrame)
+	local editBox = MSB_TalentPlanRename_GetEditBox(popupFrame)
+	TalentPlanService:RenamePlan(TalentPlanService:GetActivePlanIndex(), editBox:GetText())
+	if (TalentTree) then
+		TalentTree:RefreshPlanDropdown()
+		TalentTree:Refresh()
+	end
+end
+
+StaticPopupDialogs["MSB_TALENT_PLAN_RENAME"] = {
+	text = "Rename the current template:",
+	button1 = ACCEPT,
+	button2 = CANCEL,
+	hasEditBox = 1,
+	maxLetters = 32,
+	OnShow = function(self)
+		local dialog = self or this
+		local editBox = MSB_TalentPlanRename_GetEditBox(dialog)
+		editBox:SetText(TalentPlanService:GetPlanName(TalentPlanService:GetActivePlanIndex()))
+		editBox:HighlightText()
+		editBox:SetFocus()
+	end,
+	-- Unlike OnShow (which fires bound to the dialog itself), OnAccept fires from the Accept
+	-- button's own OnClick ([string "StaticPopup1Button1:OnClick"] in the trace that caught this),
+	-- so `self`/`this` here is the BUTTON, not the dialog - confirmed by both the field and
+	-- getglobal fallbacks failing identically, since both were resolving names relative to the
+	-- wrong frame. :GetParent() on the button reaches the dialog, same as the edit box's own
+	-- handlers below already do for the same reason.
+	OnAccept = function(self)
+		MSB_TalentPlanRename_Apply((self or this):GetParent())
+	end,
+	EditBoxOnEnterPressed = function(self)
+		local popup = (self or this):GetParent()
+		MSB_TalentPlanRename_Apply(popup)
+		popup:Hide()
+	end,
+	EditBoxOnEscapePressed = function(self)
+		(self or this):GetParent():Hide()
+	end,
+	timeout = 0,
+	whileDead = true,
+	hideOnEscape = true,
+}
+
+StaticPopupDialogs["MSB_TALENT_PLAN_CLEAR"] = {
+	text = "Clear all planned talents in the current template? This can't be undone.",
+	button1 = "Clear",
+	button2 = CANCEL,
+	OnAccept = function()
+		TalentPlanService:ClearPlan(TalentPlanService:GetActivePlanIndex())
+		if (TalentTree) then
+			TalentTree:Refresh()
+		end
+	end,
+	timeout = 0,
+	whileDead = true,
+	hideOnEscape = true,
+}
 
 class "CTalentSettings"
 {

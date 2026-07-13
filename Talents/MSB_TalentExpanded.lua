@@ -100,8 +100,10 @@ class "CExpandedSpecFrame"
 		if (specDesc.SetWordWrap) then specDesc:SetWordWrap(true) end
 		specDesc:Show()
 
-		-- Create talent grid early so we can query its data for key abilities
-		local _, _, pointsSpent = GetTalentTabInfo(spec.tab_index)
+		-- Create talent grid early so we can query its data for key abilities. Mode-aware (real or
+		-- planned totals) so this panel's lock text/points title stay in sync with Plan Mode
+		-- instead of always showing real progress.
+		local pointsSpent = self.parent_tree:GetSpecPointsSpent(spec.tab_index)
 		local gridH = c.GRID_ROWS * c.CELL_SIZE + 20
 		local gridContainer = CreateFrame("Frame", nil, self.frame)
 		gridContainer:SetWidth(gridW)
@@ -202,7 +204,11 @@ class "CExpandedSpecFrame"
 				icon.is_exceptional = true
 				icon:ApplyFrameShape()
 			end
-			if (icon.curr_rank >= icon.max_rank) then
+			local showcaseRank = icon.curr_rank
+			if (self.parent_tree and self.parent_tree.mode == "planned") then
+				showcaseRank = TalentPlanService:GetPlannedRank(icon.talent_tab, icon.talent_index)
+			end
+			if (showcaseRank >= icon.max_rank) then
 				if (icon.is_exceptional) then
 					icon.border:SetTexture(TALENT_ASSETS .. "talent-frame-square-gold")
 				else
@@ -224,23 +230,22 @@ class "CExpandedSpecFrame"
 		end
 
 		-- Points invested title
+		local pointsWord = (pointsSpent == 1) and "TALENT POINT" or "TALENT POINTS"
 		local pointsTitle = self.frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		pointsTitle:SetFont("Fonts\\FRIZQT__.TTF", 22)
 		if (pointsSpent > 0) then
-			pointsTitle:SetText("|cff00ff00" .. pointsSpent .. "|r TALENT POINTS INVESTED")
+			pointsTitle:SetText("|cff00ff00" .. pointsSpent .. "|r " .. pointsWord .. " INVESTED")
 		else
-			pointsTitle:SetText("|cff808080" .. pointsSpent .. "|r TALENT POINTS INVESTED")
+			pointsTitle:SetText("|cff808080" .. pointsSpent .. "|r " .. pointsWord .. " INVESTED")
 		end
 		pointsTitle:SetTextColor(1, 1, 1)
 		pointsTitle:SetJustifyH("CENTER")
 
-		-- Refresh grid state
-		local totalAvailable = UnitLevel("player") - 9
-		if (totalAvailable < 0) then totalAvailable = 0 end
+		-- Refresh grid state (shared mode-aware reader, so this can't drift from CTalentTree:Refresh)
+		local totalAvailable = self.parent_tree:GetTotalAvailablePoints()
 		local totalSpent = 0
 		for _, s in ipairs(self.parent_tree.specs) do
-			local _, _, sp = GetTalentTabInfo(s.tab_index)
-			totalSpent = totalSpent + sp
+			totalSpent = totalSpent + self.parent_tree:GetSpecPointsSpent(s.tab_index)
 		end
 		local remaining = totalAvailable - totalSpent
 		self.grid:Refresh(pointsSpent, remaining)

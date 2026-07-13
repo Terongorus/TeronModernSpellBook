@@ -43,11 +43,20 @@ class "CTalentIcon"
 		self.haze_tex:SetBlendMode("ADD")
 		self.haze_tex:SetAlpha(0)
 
-		-- Rank text (bottom-right)
+		-- Rank text (bottom-right) - always real rank, unaffected by Plan Mode
 		self.rank_text = self.frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		self.rank_text:SetPoint("BOTTOMRIGHT", self.frame, "BOTTOMRIGHT", -4, 4)
 		self.rank_text:SetFont("Fonts\\FRIZQT__.TTF", 9)
 		self.rank_text:SetTextColor(0.5, 0.5, 0.5)
+
+		-- Planned/virtual rank text (bottom-left) - shown whenever nonzero, in either mode, so a
+		-- plan stays visible while just browsing Learned mode too. Hidden at 0 rather than always
+		-- shown like rank_text, since a cyan "0" under nearly every icon would be pure clutter.
+		self.plan_rank_text = self.frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		self.plan_rank_text:SetPoint("BOTTOMLEFT", self.frame, "BOTTOMLEFT", 4, 4)
+		self.plan_rank_text:SetFont("Fonts\\FRIZQT__.TTF", 9)
+		self.plan_rank_text:SetTextColor(0, 1, 1)
+		self.plan_rank_text:Hide()
 
 		-- Talent data
 		self.talent_tab = 0
@@ -56,6 +65,7 @@ class "CTalentIcon"
 		self.column = 0
 		self.curr_rank = 0
 		self.max_rank = 0
+		self.virtual_rank = 0
 		self.is_exceptional = false
 		self.is_final = false
 		self.visual_state = "locked"
@@ -84,8 +94,30 @@ class "CTalentIcon"
 
 		self.frame:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 		self.frame:SetScript("OnClick", function()
+			if (TalentTree and TalentTree.mode == "planned") then
+				-- No visual_state pre-check here on purpose: PlanTalent/UnplanTalent already
+				-- validate everything themselves (max-rank cap, tier/prereq gates, dependent
+				-- checks) and silently no-op if the click isn't valid. A blanket "available or
+				-- partial" gate here duplicated that logic incorrectly - a fully-planned talent
+				-- has visual_state "maxed", which failed the gate and blocked right-click removal
+				-- too, even though removing from a maxed plan is exactly what should be allowed.
+				if (arg1 == "LeftButton") then
+					TalentPlanService:PlanTalent(talent_icon.talent_tab, talent_icon.talent_index)
+				elseif (arg1 == "RightButton") then
+					TalentPlanService:UnplanTalent(talent_icon.talent_tab, talent_icon.talent_index)
+				end
+				if (TalentTree.frame:IsVisible()) then
+					TalentTree:Refresh()
+				end
+				return
+			end
+
 			if (arg1 == "LeftButton") then
 				if (talent_icon.visual_state ~= "available" and talent_icon.visual_state ~= "partial") then
+					return
+				end
+				local gated = ModernSpellBook_DB and ModernSpellBook_DB.talentForceShiftLearn and not IsShiftKeyDown()
+				if (gated) then
 					return
 				end
 				if (LearnTalent) then
@@ -116,20 +148,18 @@ class "CTalentIcon"
 		self.icon_texture = iconTexture
 
 		-- Query prerequisites
-		self.prereq_tier = nil
-		self.prereq_column = nil
-		if (GetTalentPrereqs) then
-			pcall(function()
-				local pTier, pCol = GetTalentPrereqs(tab, index)
-				if (pTier and pTier > 0) then
-					self.prereq_tier = pTier
-					self.prereq_column = pCol
-				end
-			end)
-		end
+		self.prereq_tier, self.prereq_column = MSB_GetTalentPrereqs(tab, index)
 
 		self:ApplyFrameShape()
 		self.rank_text:SetText(currRank .. "/" .. maxRank)
+
+		self.virtual_rank = TalentPlanService:GetPlannedRank(tab, index)
+		if (self.virtual_rank > 0) then
+			self.plan_rank_text:SetText(self.virtual_rank .. "/" .. maxRank)
+			self.plan_rank_text:Show()
+		else
+			self.plan_rank_text:Hide()
+		end
 	end;
 
 	RefreshRank = function(self)
@@ -139,6 +169,25 @@ class "CTalentIcon"
 			self.max_rank = maxRank
 			self.rank_text:SetText(currRank .. "/" .. maxRank)
 		end
+
+		self.virtual_rank = TalentPlanService:GetPlannedRank(self.talent_tab, self.talent_index)
+		if (self.virtual_rank > 0) then
+			self.plan_rank_text:SetText(self.virtual_rank .. "/" .. self.max_rank)
+			self.plan_rank_text:Show()
+		else
+			self.plan_rank_text:Hide()
+		end
+	end;
+
+	-- Effective rank used for *visual state* decisions (locked/available/partial/maxed, tier
+	-- unlock, connection/gridline coloring) - switches to the virtual rank in Plan Mode so the
+	-- whole grid can simulate a build, while curr_rank/rank_text stay real-always regardless of
+	-- mode for the always-visible real-progress display.
+	GetStateRank = function(self)
+		if (TalentTree and TalentTree.mode == "planned") then
+			return self.virtual_rank
+		end
+		return self.curr_rank
 	end;
 
 	-- =================== FRAME SHAPE =============================
@@ -166,24 +215,36 @@ class "CTalentIcon"
 			self.hover_frame:SetWidth(TALENT_ICON_SIZE_EXCEPTIONAL)
 			self.hover_frame:SetHeight(TALENT_ICON_SIZE_EXCEPTIONAL)
 			self.hover_glow:SetTexture("Interface\\Buttons\\CheckButtonHilight")
-		
-			self.rank_text:Hide()
-		
+
 			self.border:SetTexture(TALENT_ASSETS .. "talent-frame-square")
 			self.socket:SetTexture(TALENT_ASSETS .. "talent-socket-square")
 			self.border_frame:SetWidth(TALENT_ICON_SIZE_EXCEPTIONAL + 3.3)
 			self.border_frame:SetHeight(TALENT_ICON_SIZE_EXCEPTIONAL + 3.3)
 			self.socket:SetWidth(self.size + 2)
 			self.socket:SetHeight(self.size + 2)
+
+			-- Exceptional icons have a visibly larger border (and, if also final, an even bigger
+			-- "fancy" overlay) than regular circular ones, so the standard rank-text offset left
+			-- almost no clearance between the text and the icon's own border - push both further
+			-- down/out to match.
+			self.rank_text:ClearAllPoints()
+			self.rank_text:SetPoint("BOTTOMRIGHT", self.frame, "BOTTOMRIGHT", -4, -5)
+			self.plan_rank_text:ClearAllPoints()
+			self.plan_rank_text:SetPoint("BOTTOMLEFT", self.frame, "BOTTOMLEFT", 4, -5)
 		else
-		
+
 			SetPortraitToTexture(self.icon, self.icon_texture)
 			SetPortraitToTexture(self.hover_glow, "Interface\\Buttons\\CheckButtonHilight")
-		
+
 			self.border:SetTexture(TALENT_ASSETS .. "talent-frame-circle")
 			self.socket:SetTexture(TALENT_ASSETS .. "talent-socket-circle")
 			self.socket:SetWidth(self.size + 4)
 			self.socket:SetHeight(self.size + 4)
+
+			self.rank_text:ClearAllPoints()
+			self.rank_text:SetPoint("BOTTOMRIGHT", self.frame, "BOTTOMRIGHT", -4, 4)
+			self.plan_rank_text:ClearAllPoints()
+			self.plan_rank_text:SetPoint("BOTTOMLEFT", self.frame, "BOTTOMLEFT", 4, 4)
 		end
 		self.socket:Show()
 	end;
@@ -201,9 +262,10 @@ class "CTalentIcon"
 
 		self.tier_unlocked = (points_spent >= required_points)
 
-		if (self.curr_rank == self.max_rank) then
+		local state_rank = self:GetStateRank()
+		if (state_rank == self.max_rank) then
 			self.visual_state = "maxed"
-		elseif (self.curr_rank > 0) then
+		elseif (state_rank > 0) then
 			self.visual_state = "partial"
 		elseif (self.tier_unlocked and self.prereq_met and points_remaining and points_remaining > 0) then
 			self.visual_state = "available"
@@ -274,13 +336,25 @@ class "CTalentIcon"
 			else
 				self.border:SetTexture(TALENT_ASSETS .. "talent-frame-circle-green")
 			end
-		elseif (state == "maxed") then			
+		elseif (state == "maxed") then
 			self.haze_tex:SetAlpha(0.7)
 			if (self.is_exceptional) then
 				self.border:SetTexture(TALENT_ASSETS .. "talent-frame-square-gold")
 			else
 				self.border:SetTexture(TALENT_ASSETS .. "talent-frame-circle-gold")
 			end
+		end
+
+		-- hover_glow uses Interface\Buttons\CheckButtonHilight with no vertex color override, so
+		-- it shows that texture's own natural (yellow-green) tint on hover - fine over a green
+		-- "available"/"partial" border, but visibly clashes and shifts a gold "maxed" border
+		-- toward looking green. Tint it to match whichever state is actually active instead.
+		if (state == "maxed") then
+			self.hover_glow:SetVertexColor(1, 0.9, 0.5)
+		elseif (state == "available" or state == "partial") then
+			self.hover_glow:SetVertexColor(0.6, 1, 0.6)
+		else
+			self.hover_glow:SetVertexColor(1, 1, 1)
 		end
 	end;
 

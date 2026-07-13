@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow major.minor.hotfix (e.g. 1.2.3).
 
+## [1.7.0] - 2026-07-13
+
+### Added
+- Talent frame: **Plan Mode**, a "Learned"/"Planned" toggle near the header that lets you assign
+  virtual talent points independent of your real ones - the entire grid (connection lines,
+  tier-lock indicator, grid-line coloring, icon lock/available/partial/maxed states) simulates
+  what your build would look like from the virtual totals when Planned is active, without ever
+  spending a real point. Left-click adds a virtual point, right-click removes one; removals that
+  would orphan a dependent talent or break another planned talent's tier requirement are blocked
+  with a chat explanation instead of silently corrupting the plan. The real rank (bottom-right on
+  each icon) never changes in Planned mode; a new cyan planned-rank badge (bottom-left) shows
+  whenever a talent has a virtual point, in either mode.
+- Talent frame: up to **20 named plans** per character, switchable, renameable, and clearable from
+  the settings gear's new "Talent Plans" submenu.
+- Talent frame: **"Force shift-click learn"** option (settings gear) - when enabled, spending a
+  real talent point requires holding Shift, as misclick protection. Only applies to real spending;
+  Plan Mode is never gated by it, and has no Shift-click exception of its own - there is no way to
+  spend a real point from Planned mode.
+
 ## [1.6.6] - 2026-07-11
 
 ### Fixed

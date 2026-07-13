@@ -288,7 +288,7 @@ class "CTalentGrid"
 		local function checkPrereq(tier, column)
 			for _, talent in ipairs(self.icons) do
 				if (talent.tier == tier and talent.column == column) then
-					return talent.curr_rank == talent.max_rank
+					return talent:GetStateRank() == talent.max_rank
 				end
 			end
 			return false
@@ -312,10 +312,10 @@ class "CTalentGrid"
 		local coloring = gl.coloring or "unlocked"
 		local visibility = gl.visibility or "unlocked"
 
-		-- Build rank lookup: tier,col -> curr_rank
+		-- Build rank lookup: tier,col -> effective rank (real or virtual, depending on mode)
 		local rankMap = {}
 		for _, talent in ipairs(self.icons) do
-			rankMap[talent.tier .. "," .. talent.column] = talent.curr_rank
+			rankMap[talent.tier .. "," .. talent.column] = talent:GetStateRank()
 		end
 
 		for _, lineData in ipairs(self.grid_lines) do

@@ -199,6 +199,151 @@ class "CTalentTree"
 		self.points_text:SetFont("Fonts\\FRIZQT__.TTF", 14)
 		self.points_text:SetTextColor(1.0, 1.0, 1.0)
 
+		self.mode = "learned"
+
+		-- Learned/Planned mode toggle, flanking the title directly (close, not out in the header
+		-- corners) - the most frequently used control this feature adds. Force-Shift-Click and
+		-- the plan switcher then chain further outward from these, so the whole group reads as
+		-- one cluster anchored to the title rather than being spread across the whole (very wide)
+		-- frame width.
+		self.mode_learned_btn = CreateFrame("Button", nil, self.frame, "UIPanelButtonTemplate")
+		self.mode_learned_btn:SetWidth(70)
+		self.mode_learned_btn:SetHeight(20)
+		-- -77 (not -45, matching Planned's gap on the other side) - the class icon sits between
+		-- this button and the title's own left edge (titleIconFrame, 24px wide + 8px gap = 32px,
+		-- set up later in BuildSpecs), so a -45 offset from the title's edge alone left this
+		-- button visually closer to the icon+title group than Planned sits to the title's right
+		-- edge (which has no icon competing for space). -45 - 32 compensates for it.
+		-- y=-2 (not 0) on both this and Planned's anchor below: self.title is a FontString whose
+		-- LEFT/RIGHT points sit at the text's glyph-center, which doesn't line up with a Button's
+		-- purely-geometric LEFT/RIGHT center at y=0. (A first attempt at +2 made the mismatch
+		-- visibly worse, confirming the correction needed to go the other way, toward -2.)
+		-- Everything else in this row chains off these two buttons, so this one correction
+		-- propagates through the whole row automatically.
+		self.mode_learned_btn:SetPoint("RIGHT", self.title, "LEFT", -77, -2)
+		self.mode_learned_btn:SetText("Learned")
+		self.mode_learned_btn:SetFrameLevel(self.frame:GetFrameLevel() + 20)
+		self.mode_learned_btn:SetScript("OnClick", function() tree:SetMode("learned") end)
+
+		self.mode_planned_btn = CreateFrame("Button", nil, self.frame, "UIPanelButtonTemplate")
+		self.mode_planned_btn:SetWidth(70)
+		self.mode_planned_btn:SetHeight(20)
+		self.mode_planned_btn:SetPoint("LEFT", self.title, "RIGHT", 45, -2)
+		self.mode_planned_btn:SetText("Planned")
+		self.mode_planned_btn:SetFrameLevel(self.frame:GetFrameLevel() + 20)
+		self.mode_planned_btn:SetScript("OnClick", function() tree:SetMode("planned") end)
+
+		self.mode_learned_btn:LockHighlight()
+
+		-- Force shift-click learn: misclick protection for spending REAL points (never gates
+		-- Plan Mode's virtual points, which stay freely add/removable). Chained left of the
+		-- Learned button, always visible since it's a persistent setting, not tied to either mode.
+		--
+		-- The label is anchored by its RIGHT edge to a fixed point relative to the Learned button,
+		-- growing text LEFTWARD from there - not anchored LEFT-to-right with a guessed gap, which
+		-- is what caused it to overflow behind and get visually clipped by the Learned button's
+		-- own opaque texture (the label's true rendered width is wider than any small fixed gap
+		-- could safely assume). The checkbox then anchors off the label's LEFT edge the same way,
+		-- so this whole chain self-adjusts to the label's actual text width instead of the other
+		-- way around.
+		-- Parented to self.mode_learned_btn (not self.frame) so it inherits that button's already-
+		-- elevated frame level automatically, instead of sitting at the base frame's level like
+		-- everything else here originally did - unlike the buttons/dropdown (all explicitly
+		-- elevated via SetFrameLevel), this FontString and the checkbox below were never elevated,
+		-- so the expanded spec view's own content (a sibling frame drawn above the base level)
+		-- covered them whenever it was open.
+		local forceShiftLabel = self.mode_learned_btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		forceShiftLabel:SetPoint("RIGHT", self.mode_learned_btn, "LEFT", -15, 0)
+		forceShiftLabel:SetFont("Fonts\\FRIZQT__.TTF", 10)
+		forceShiftLabel:SetText("Force Shift-Click")
+		forceShiftLabel:SetTextColor(1, 1, 1)
+
+		self.force_shift_check = CreateFrame("CheckButton", nil, self.frame, "UICheckButtonTemplate")
+		self.force_shift_check:SetWidth(20)
+		self.force_shift_check:SetHeight(20)
+		self.force_shift_check:SetFrameLevel(self.frame:GetFrameLevel() + 20)
+		self.force_shift_check:SetPoint("RIGHT", forceShiftLabel, "LEFT", -2, 0)
+		self.force_shift_check:SetChecked(ModernSpellBook_DB and ModernSpellBook_DB.talentForceShiftLearn and true or false)
+		self.force_shift_check:SetScript("OnClick", function()
+			ModernSpellBook_DB.talentForceShiftLearn = this:GetChecked() and true or false
+		end)
+
+		-- Talent plan switcher: dropdown + Rename/Clear, chained right of the Planned button.
+		-- Always visible (not mode-gated) - you may want to line up which plan is active before
+		-- switching into Planned mode to view it.
+		-- Reverted to "Frame": switching to "Button" (matching LunaUnitFrames' own dropdowns)
+		-- didn't fix the missing arrow and broke click-to-open entirely - the outer widget being
+		-- itself clickable, with no OnClick wired to it, likely intercepted clicks that used to
+		-- reach the template's own internal arrow sub-widget when the outer wrapper was a plain,
+		-- non-clickable Frame. AddOnOrganizer's XML-defined dropdown (a working reference) also
+		-- uses a plain <Frame>, not <Button>, for the same template - "Button" isn't universally
+		-- required the way it first looked. The missing arrow is still unresolved.
+		-- Confirmed: calling SetFrameLevel on the dropdown AFTER CreateFrame elevates the box but
+		-- breaks the arrow - the template's internal arrow sub-widget almost certainly gets built
+		-- with a level computed relative to its parent's level at CREATION time, so elevating
+		-- afterward doesn't retroactively fix the arrow's own already-fixed relative level. Same
+		-- class of problem forceShiftLabel had, same fix: parent onto an already-elevated widget
+		-- (mode_planned_btn) so the inherited default level is correct from the moment the
+		-- template's sub-widgets are built, instead of elevating post-creation. SetPoint's anchor
+		-- target is independent of CreateFrame's parent argument, so positioning still works the
+		-- same relative to mode_planned_btn regardless of which frame parents it.
+		self.plan_dropdown = CreateFrame("Frame", "ModernTalentPlanDropDown", self.mode_planned_btn, "UIDropDownMenuTemplate")
+		self.plan_dropdown:SetPoint("LEFT", self.mode_planned_btn, "RIGHT", 45, 0)
+		-- Vanilla's signature is (width, frame) - the reverse of retail's (frame, width). Every
+		-- real addon on this client (AddOnOrganizer, LunaUnitFrames, BetterCharacterStats, etc.)
+		-- calls it width-first; passing the frame first throws inside UIDropDownMenu_SetWidth
+		-- itself ("attempt to index local `frame' (a number value)"), since it receives our width
+		-- number where it expects the frame.
+		UIDropDownMenu_SetWidth(180, self.plan_dropdown)
+		-- Calling the actual UIDropDownMenu_Initialize function, not directly assigning
+		-- .initialize as a raw field - every real working dropdown (LunaUnitFrames'
+		-- AuraBorderSelect etc.) goes through this, and it does more than just store the
+		-- callback: it also calls it immediately once (see EnsureDB's nil-guard for why).
+		-- No UIDropDownMenu_JustifyText call - that was a speculative addition (copied from the
+		-- reference without verifying its effect) and is a plausible cause of the opened list
+		-- panel appearing offset left relative to the box: right-justifying the box's own text
+		-- may shift some internal reference point the list's positioning math also depends on.
+		UIDropDownMenu_Initialize(self.plan_dropdown, function(level)
+			local activeIdx = TalentPlanService:GetActivePlanIndex()
+			local maxPlans = TalentPlanService:GetMaxPlanCount()
+			local idx
+			for idx = 1, maxPlans do
+				local info = {}
+				info.text = TalentPlanService:GetPlanName(idx)
+				-- info.value (not the closure's own captured idx) is what SetActivePlan reads
+				-- back below, via this.value - Blizzard's dropdown framework stores it directly
+				-- on each button widget, so it can't be affected by anything closure-related.
+				info.value = idx
+				info.checked = (idx == activeIdx)
+				info.func = function()
+					TalentPlanService:SetActivePlan(this.value)
+					tree:RefreshPlanDropdown()
+					tree:Refresh()
+				end
+				UIDropDownMenu_AddButton(info, level or 1)
+			end
+		end)
+
+		self.plan_rename_btn = CreateFrame("Button", nil, self.frame, "UIPanelButtonTemplate")
+		self.plan_rename_btn:SetWidth(60)
+		self.plan_rename_btn:SetHeight(20)
+		self.plan_rename_btn:SetPoint("LEFT", self.plan_dropdown, "RIGHT", 8, 0)
+		self.plan_rename_btn:SetText("Rename")
+		self.plan_rename_btn:SetFrameLevel(self.frame:GetFrameLevel() + 20)
+		self.plan_rename_btn:SetScript("OnClick", function()
+			StaticPopup_Show("MSB_TALENT_PLAN_RENAME")
+		end)
+
+		self.plan_clear_btn = CreateFrame("Button", nil, self.frame, "UIPanelButtonTemplate")
+		self.plan_clear_btn:SetWidth(60)
+		self.plan_clear_btn:SetHeight(20)
+		self.plan_clear_btn:SetPoint("LEFT", self.plan_rename_btn, "RIGHT", 4, 0)
+		self.plan_clear_btn:SetText("Clear")
+		self.plan_clear_btn:SetFrameLevel(self.frame:GetFrameLevel() + 20)
+		self.plan_clear_btn:SetScript("OnClick", function()
+			StaticPopup_Show("MSB_TALENT_PLAN_CLEAR")
+		end)
+
 		self.enabled = true
 
 		-- Event handling
@@ -242,6 +387,13 @@ class "CTalentTree"
 			if (not self.built) then
 				self:BuildSpecs()
 				self.built = true
+			end
+			if (not self.repaired_this_session) then
+				-- The plan active from a prior session never goes through SetActivePlan (which
+				-- also repairs), since nothing explicitly switches to it - it's just already
+				-- selected. Catch it once here too.
+				TalentPlanService:RepairPlan(TalentPlanService:GetActivePlanIndex())
+				self.repaired_this_session = true
 			end
 			self:Refresh()
 			self.frame:Show()
@@ -433,34 +585,88 @@ class "CTalentTree"
 		self:Refresh()
 	end;
 
+	-- ==================== MODE TOGGLE =============================
+
+	-- Single mode-aware points-spent reader for one spec tab: real GetTalentTabInfo in Learned
+	-- mode, the active plan's virtual total in Planned mode. Both Refresh and the expanded view
+	-- read through this one function so they can't drift out of sync with each other.
+	GetSpecPointsSpent = function(self, tabIndex)
+		if (self.mode == "planned") then
+			return TalentPlanService:GetTabPlannedPoints(tabIndex)
+		end
+		local _, _, pointsSpent = GetTalentTabInfo(tabIndex)
+		return pointsSpent
+	end;
+
+	-- Total points to plan/spend against: the real, currently-earned total in Learned mode, but
+	-- the full max-level (60) total in Planned mode - a plan is a theorycrafted end-state build,
+	-- not limited to points your character has actually earned yet.
+	GetTotalAvailablePoints = function(self)
+		if (self.mode == "planned") then
+			return MSB_GetMaxTalentPointsEver()
+		end
+		return MSB_GetTotalTalentPointsAvailable()
+	end;
+
+	SetMode = function(self, mode)
+		self.mode = mode
+		if (mode == "planned") then
+			self.mode_planned_btn:LockHighlight()
+			self.mode_learned_btn:UnlockHighlight()
+		else
+			self.mode_learned_btn:LockHighlight()
+			self.mode_planned_btn:UnlockHighlight()
+		end
+		self:Refresh()
+	end;
+
+	-- Updates the plan dropdown's displayed text to match the currently active plan. Called
+	-- whenever the active plan changes or is renamed, from wherever that happens (the dropdown
+	-- itself, or the rename popup in MSB_TalentSettings.lua).
+	RefreshPlanDropdown = function(self)
+		if (self.plan_dropdown) then
+			-- Vanilla's signature is (text, frame), same reversed convention as SetWidth.
+			UIDropDownMenu_SetText(TalentPlanService:GetPlanName(TalentPlanService:GetActivePlanIndex()), self.plan_dropdown)
+		end
+	end;
+
 	-- ====================== REFRESH ==============================
 
 	Refresh = function(self)
+		-- Re-sync the Force Shift-Click checkbox and the plan dropdown's displayed text with
+		-- their real persisted values every refresh, not just once at __init - __init runs at
+		-- file-load time, before ModernSpellBook_DB's SavedVariables are actually injected (same
+		-- root cause as the earlier nil-index crash there), so a one-time read at that point only
+		-- ever sees "not loaded yet" and both widgets got stuck showing that first guess forever,
+		-- even though the real saved values were never actually lost.
+		self.force_shift_check:SetChecked(ModernSpellBook_DB and ModernSpellBook_DB.talentForceShiftLearn and true or false)
+		self:RefreshPlanDropdown()
+
 		local totalSpent = 0
-		local totalAvailable = UnitLevel("player") - 9
-		if (totalAvailable < 0) then totalAvailable = 0 end
+		local totalAvailable = self:GetTotalAvailablePoints()
 
 		for _, spec in ipairs(self.specs) do
-			local _, _, pointsSpent = GetTalentTabInfo(spec.tab_index)
-			spec.points_text:SetText(pointsSpent .. " points")
+			local pointsSpent = self:GetSpecPointsSpent(spec.tab_index)
+			spec.points_text:SetText(pointsSpent .. " " .. ((pointsSpent == 1) and "point" or "points"))
 			totalSpent = totalSpent + pointsSpent
 		end
 
 		local remaining = totalAvailable - totalSpent
 
 		for _, spec in ipairs(self.specs) do
-			local _, _, pointsSpent = GetTalentTabInfo(spec.tab_index)
+			local pointsSpent = self:GetSpecPointsSpent(spec.tab_index)
 			spec.grid:Refresh(pointsSpent, remaining)
 		end
 
 		-- Refresh expanded view's grid if visible
 		if (self.expanded_spec and self.expanded_view and self.expanded_view.grid) then
-			local _, _, pointsSpent = GetTalentTabInfo(self.specs[self.expanded_spec].tab_index)
+			local pointsSpent = self:GetSpecPointsSpent(self.specs[self.expanded_spec].tab_index)
 			self.expanded_view.grid:Refresh(pointsSpent, remaining)
 		end
 
 		if (remaining > 0) then
-			self.points_text:SetText("|cff00ff00" .. remaining .. "|r TALENT POINT AVAILABLE")
+			local word = (remaining == 1) and "POINT" or "POINTS"
+			self.points_text:SetText("|cff00ff00" .. remaining .. "|r TALENT " .. word .. " AVAILABLE")
 		else
 			self.points_text:SetText("NO TALENT POINTS AVAILABLE")
 		end

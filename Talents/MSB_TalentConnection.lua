@@ -101,7 +101,12 @@ class "CTalentConnection"
 
 		local arrow_width = 4
 		local head_size = 10
-		local icon_radius = 15 -- half of icon, avoid overlapping
+		-- Half of the *visible* circular boundary (the socket ring drawn at self.size+4 = 34px in
+		-- MSB_TalentIcon.lua's ApplyFrameShape), not half of the inner icon texture (30px). Using
+		-- the smaller inner-texture radius here left segments/arrowheads terminating ~2px inside
+		-- the actual visible edge, so connectors visibly clipped into the icon instead of stopping
+		-- cleanly at its border - looked like a stray highlight/gloss line across the icon's top.
+		local icon_radius = 17
 
 		if (src_row == dst_row and src_col ~= dst_col) then
 			-- Same row: pure horizontal
