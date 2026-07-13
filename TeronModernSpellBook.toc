@@ -5,20 +5,20 @@
 ## Notes-frFR: Modifie le livre de sorts pour un look plus moderne inspiré de la version commerciale.
 ## Notes-deDE: Ändert das Zauberbuch zu einem moderneren Aussehen, inspiriert von der Einzelhandelsversion.
 ## Notes-esES: Cambia el libro de hechizos a un aspecto más moderno inspirado en la versión comercial.
-## Version: 1.7.0
+## Version: 2.0.0
 ## DefaultState: enabled
+
+## Dependencies: TeronModernCore
+## OptionalDeps: TeronModernTalents
 
 ## SavedVariablesPerCharacter: ModernSpellBook_DB
 
 # Lib
-Lib\MSB_Class.lua
 Lib\MSB_Compat.lua
-Lib\MSB_UIFactories.lua
 Lib\MSB_TextStyle.lua
 
 # Core
 Core\MSB_Localization.lua
-Core\MSB_Icon.lua
 Core\MSB_SlashCommands.lua
 
 # Spellbook
@@ -35,13 +35,6 @@ Spellbook\MSB_Tabs.lua
 
 # Talents
 Talents\MSB_Talents.lua
-Talents\MSB_TalentPlans.lua
-Talents\MSB_TalentIcon.lua
-Talents\MSB_TalentConnection.lua
-Talents\MSB_TalentGrid.lua
-Talents\MSB_TalentExpanded.lua
-Talents\MSB_TalentSettings.lua
-Talents\MSB_TalentTree.lua
 
 # Debug
 Debug\MSB_Debug.lua

@@ -109,17 +109,11 @@ class "CSlashCommands"
 		local dbVersion = ModernSpellBook_DB.dbVersion
 		local spells = ModernSpellBook_DB.spells
 		local trainerScanned = ModernSpellBook_DB.trainerScanned
-		-- Talent plans represent real user effort (up to 20 named builds) - unlike other talent
-		-- settings here (grid lines, position, scale), which just lazily re-default on next use,
-		-- this table would be silently and permanently destroyed by the wholesale reassignment
-		-- below if not explicitly carried forward.
-		local talentPlans = ModernSpellBook_DB.talentPlans
 
 		ModernSpellBook_DB = {
 			dbVersion = dbVersion,
 			spells = spells or {},
 			trainerScanned = trainerScanned,
-			talentPlans = talentPlans,
 			showPassives = true,
 			isMinimized = false,
 			showSpellCounter = true,

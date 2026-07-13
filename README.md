@@ -33,8 +33,6 @@ on both **Turtle WoW** and pure **Vanilla 1.12.1** servers such as **TwinStar Kr
 - **Stance/aura tracking** — active stance/form icons glow in real time.
 - **Full tooltips** for unlearned spells too, built from data captured at the trainer
   (description, level requirement, training cost).
-- **Custom talent tree window** (`/msb talents`) — an alternate talent UI alongside the
-  spellbook, independent of the vanilla talent frame.
 - **Settings menu** (gear icon in the spellbook) with:
   - Show-unlearned-spells toggle
   - Per-category highlight controls (learned glow/badge, available-to-train glow/badge)
@@ -55,21 +53,32 @@ small compatibility guard (see `Spellbook/MSB_Spellbook.lua`) so its legacy What
 overlay-detection code doesn't error against the new tab-based version. Nothing needs to
 be configured; if both addons are installed, the tab just appears.
 
+## Talent tree integration
+
+The custom talent tree window (glowing prereq connections, tier-lock indicators, Plan Mode)
+used to live in this addon and now ships separately as **[TeronModernTalents](../TeronModernTalents)**.
+It's an optional companion, not a requirement — if it's installed, `/msb talents` toggles
+between it and the vanilla talent frame, and talent-gated spells in this spellbook are still
+detected and labeled correctly either way (that detection uses the Blizzard talent API
+directly, not the custom talent tree UI).
+
 ## Slash commands
 
 | Command | Effect |
 |---|---|
 | `/msb` | Toggle between the modern spellbook and the original vanilla one. |
-| `/msb talents` | Toggle between the custom talent tree window and the vanilla talent frame. |
+| `/msb talents` | Toggle between the custom talent tree window and the vanilla talent frame (requires **TeronModernTalents**; does nothing if it isn't installed). |
 | `/msb reset` | Reset all ModernSpellBook settings to their defaults. |
 | `/msb rescan` | Clear the cached trainer data (forces a full rescan on your next trainer visit). |
 | `/msbdebug` | Diagnostic dump — spell tabs, talent tabs, current tab state, and a phased replay of the spell-collection logic, useful for reporting bugs. |
 
 ## Installation
 
-1. Download or clone this repository into your `Interface\AddOns\` folder.
-2. Make sure the folder is named exactly `TeronModernSpellBook` — WoW requires the folder
-   name to match the `.toc` filename inside it, or the client won't detect the addon.
+1. Download or clone this repository, and **[TeronModernCore](../TeronModernCore)**, into your
+   `Interface\AddOns\` folder.
+2. Make sure each folder is named exactly `TeronModernSpellBook` / `TeronModernCore` — WoW
+   requires the folder name to match the `.toc` filename inside it, or the client won't detect
+   the addon.
 3. Restart the game client (or `/reload`).
 
 ## Unlearned spells
@@ -96,22 +105,22 @@ higher-level trainer to capture spells your current one doesn't offer yet.
 - **Turtle WoW** (Interface 11200) — primary original target.
 - **Pure Vanilla 1.12.1** (e.g. TwinStar Kronos V) — fully supported, no Turtle-specific
   dependencies.
-- Requires no external dependencies of its own; **TeronWhatsTraining** is an optional
-  companion addon that gains a native tab here if present, but ModernSpellBook works
-  completely standalone without it.
+- **Requires [TeronModernCore](../TeronModernCore)** (shared class framework and icon widget).
+  **TeronModernTalents** and **TeronWhatsTraining** are both optional companion addons that add
+  extra integration if present, but ModernSpellBook works completely standalone without either.
 
 ## How it's built (for the curious)
 
-- **`Lib/`** — a small class/OOP framework (`class "Name" { ... }`) and Lua 5.0/5.1
-  compatibility polyfills for APIs Retail/Classic addons take for granted but vanilla's
-  client doesn't have (no `hooksecurefunc`, no `string.gmatch`, etc.).
-- **`Core/`** — localization strings, the shared icon widget base class, the settings
-  menu, and slash commands.
+- **`Lib/`** — Lua 5.0/5.1 compatibility polyfills specific to spellbook items/tooltips (the
+  generic class/OOP framework and environment-level polyfills now live in
+  [TeronModernCore](../TeronModernCore)).
+- **`Core/`** — localization strings, the settings menu, and slash commands.
 - **`Spellbook/`** — the main feature: the spellbook controller and frame (`CSpellBook`),
   spell data collection/filtering (`CSpellDataService`), trainer-data capture
   (`CTrainerDataService`), tabs, category headers, and individual spell row widgets.
-- **`Talents/`** — a fully separate custom talent tree window, sharing only the talent
-  data service with the spellbook's talent-derived spell entries.
+- **`Talents/`** — just the talent data service (`CTalentService`) that feeds talent-derived
+  spell entries into the spellbook's spell list. The custom talent tree *window* now lives in
+  the separate [TeronModernTalents](../TeronModernTalents) addon.
 - **`Debug/`** — the `/msbdebug` diagnostic tool.
 
 The tab system and spell-row rendering are generic enough that a third-party addon (like

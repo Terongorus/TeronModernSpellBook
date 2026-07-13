@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow major.minor.hotfix (e.g. 1.2.3).
 
+## [2.0.0] - 2026-07-13
+
+### Changed
+- **Breaking: split into three addons.** The custom talent tree window (grid, connections,
+  tier-lock, Plan Mode, everything in the old `Talents/` folder except the talent *data service*)
+  moved out into its own new addon, **TeronModernTalents**. The shared class/OOP framework, icon
+  widget base class, and UI factories moved out into a new required dependency, **TeronModernCore**
+  - both this addon and TeronModernTalents build on it instead of TeronModernTalents depending on
+  this addon directly, so either can be installed independently of the other.
+- This addon now requires **TeronModernCore** to be installed alongside it (`## Dependencies` in
+  the `.toc`). **TeronModernTalents** is an optional companion (`## OptionalDeps`) - `/msb talents`
+  gracefully does nothing if it isn't installed.
+- TeronModernTalents now uses its own dedicated `ModernTalents_DB` SavedVariable instead of
+  sharing `ModernSpellBook_DB`. This is a clean break, not a migration - existing talent
+  settings/plans will need to be recreated after upgrading if TeronModernTalents is installed.
+- `/msb reset` no longer preserves talent-plan data (it never lived in this addon's SavedVariable
+  to begin with, once TeronModernTalents is installed).
+
 ## [1.7.0] - 2026-07-13
 
 ### Added
